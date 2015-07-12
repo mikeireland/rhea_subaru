@@ -12,7 +12,7 @@ import time
 
 class ClientSocket:
 	MAX_BUFFER = 65536
-	def __init__(self,IP="127.0.0.1", Port=3001):
+	def __init__(self,IP="133.40.162.192", Port=3001):
 		#NB See the prototype in macquarie-university-automation for a slightly neater start.
 		ADS = (IP,Port)
 		try:
