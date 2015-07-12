@@ -1,0 +1,1 @@
+grep 'int cmd_' *.c | sed -r 's/\(.*//' | sed 's/.*cmd_//' > cmds
