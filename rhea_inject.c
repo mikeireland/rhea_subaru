@@ -1,3 +1,5 @@
+#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.3:1.0-port0"
+
 #include "zaber.h"
 #include "thor_usb.h"
 #include "uicoms.h"
@@ -85,7 +87,7 @@ int main(int argc, char **argv)
 		funct_argv[i] = (char *)funct_strs[i];
 	}
 
-	open_zaber_port("/dev/ttyUSB0");
+	open_zaber_port(ZABER_SERIAL);
 	if (open_usb_camera() != NOERROR) fprintf(stderr, "Could not open USB camera");
 
 	/* Get ready for accepting connections... */
