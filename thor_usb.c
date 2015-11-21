@@ -1588,7 +1588,7 @@ int cmd_image(int argc, char **argv)
 	int client_last_frame=0, i, j, x, y, current_frame;
 	uLongf len, clen;
 	unsigned int outlen;
-	char outstr[IMAGE_BUFFER], *compressed_image;
+	char outstr[IMAGE_BUFFER + 16], *compressed_image;
 	float *data, *fp;
 	float values[USB_DISP_X*USB_DISP_Y];
 	float x_zero, y_zero;
@@ -1597,10 +1597,8 @@ int cmd_image(int argc, char **argv)
 	if (argc >= 2){
 		if (sscanf(argv[1], "%d", &client_last_frame)==0)
 		 return error(ERROR, "Useage: image [NUM]");
-		if (usb_camera_num_frames == client_last_frame){
-		 sprintf(outstr, "image %d 0", client_last_frame);
-		 write(client_socket, outstr, strlen(outstr));
-		}	
+		if (usb_camera_num_frames == client_last_frame)
+		 return error(MESSAGE, "image %d 0", client_last_frame);
 	}
 	/* Copy the image data */
 	data = (float *)calloc((size_t)rectAOI.s32Height *
@@ -1680,9 +1678,10 @@ int cmd_image(int argc, char **argv)
 	outlen = clen + strlen(outstr);
 	if (outlen > IMAGE_BUFFER) return error(ERROR, "Compressed image too large!");
 	memcpy(outstr + strlen(outstr), compressed_image, clen);
-	write(client_socket, outstr, outlen);
 
-	return NOERROR;
+    send_raw_message(outstr,outlen);
+
+	return MESSAGE;
 }
 
 /* At the moment, this just saves the next image as a fits file if we've been asked

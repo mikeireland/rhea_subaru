@@ -103,6 +103,13 @@ int message(char *fmt, ...)
     return NOERROR;
 }
 
+void send_raw_message(char *message,int len)
+{
+    if (client_socket != -1){
+        write(client_socket,message,len);
+    }
+}
+
 int error(int level, char *fmt, ...)
 {
 	char err_string[4097];

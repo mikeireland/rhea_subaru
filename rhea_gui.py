@@ -46,7 +46,7 @@ class RHEAGui:
 	IMAGE_WIDTH=320;
 	IMAGE_HEIGHT=256;
 	def __init__(self):
-		self.client_socket = ClientSocket()
+		self.client_socket = ClientSocket(IP="192.168.2.13")
 		self.win=Tk.Tk()
 		self.win.title("RHEA@Subaru Injection")
 		row = Tk.Frame(self.win)

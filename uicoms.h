@@ -195,8 +195,9 @@ extern int client_socket;
 
 /* uicoms.c */
 
-extern int message(char *the_string, ...);
-extern int error(int level, char *the_string, ...);
+int message(char *the_string, ...);
+void send_raw_message(char *message,int len);
+int error(int level, char *the_string, ...);
 int open_server_socket(void);
 void close_server_socket(void);
 int get_next_command(char *command);
