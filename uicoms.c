@@ -94,6 +94,11 @@ char	*server_name;			/* What we call ourselves */
 
 int message(char *fmt, ...)
 {
+    char err_string[4097];
+    int sprintf_len;
+    va_list args;
+    va_start(args,fmt);
+    sprintf_len = vsprintf(err_string, fmt, args);
     fprintf(stderr, "%s\n", err_string);
     return NOERROR;
 }

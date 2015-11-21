@@ -13,7 +13,7 @@ rhea_inject.o: rhea_inject.c
 	gcc -c -g rhea_inject.c
 
 rhea_inject: rhea_inject.o zaber_control.o uicoms.o thor_usb.o
-	gcc -o rhea_inject rhea_inject.o zaber_control.o uicoms.o thor_usb.o -lueye_api -lcfitsio -lz -lpthread
+	gcc -o rhea_inject rhea_inject.o zaber_control.o uicoms.o thor_usb.o -lueye_api -lcfitsio -lz -lpthread -lm
 
 clean: 
 	rm *.o

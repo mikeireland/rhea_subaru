@@ -774,7 +774,7 @@ int cmd_aoi(int argc, char **argv)
 		default: return error(ERROR,"Odd... we should never get here.");
 
 	}
-	return NOERROR
+	return NOERROR;
 
 } /* call_set_usb_cammera_aoi() */
 
@@ -1239,8 +1239,9 @@ int cmd_savecube(int argc, char **argv)
 	pthread_mutex_unlock(&usb_camera_mutex);
 
 	/* That should be all */
+    message("Trying to save %d frames of data.", n);
 
-	return error(MESSAGE, "Trying to save %d frames of data.", n);
+	return MESSAGE_LATER;
 
 } /* save_fits_cube() */
 
@@ -1452,6 +1453,9 @@ void bgnd_complete_fits_cube(void)
 			fits_status);
 	}
 
+    /* Signal we're done with this client! */
+    error(MESSAGE,  "Saved file %s", filename);
+
 	/* Clean up memory go */
 
 	pthread_mutex_lock(&usb_camera_mutex);
@@ -1459,8 +1463,6 @@ void bgnd_complete_fits_cube(void)
         image_data_cube_count_frames = 0;
 	free(image_data_cube);
 	pthread_mutex_unlock(&usb_camera_mutex);
-	
-	return error(MESSAGE,  "Saved file %s", filename);
 
 } /* complete_fits_cube() */
 

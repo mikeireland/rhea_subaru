@@ -178,6 +178,7 @@ extern int client_socket;
 #ifndef _ERRDEFS_
 #define _ERRDEFS_
 
+#define MESSAGE_LATER 2 /* Signal from a cmd_ function that a message will be returned later, via a background task. */
 #define MESSAGE 1 /* Use error system for putting up a message */
 #define NOERROR	0 /* No error has occured */
 #define WARNING (-1) /* A warning, nothing too dangerous has happened */
