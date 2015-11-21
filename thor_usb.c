@@ -22,7 +22,7 @@
 #define USB_DISP_Y	256 /* !!! Must be a multiple of 2 */
 #define MAX_FILE_NUMBER	999
 #define SECS_FOR_PROC  2
-#define NUM_MIN 20 /*The number of minimum pixels in each row to average over */
+#define NUM_MIN 10 /*The number of minimum pixels in each row to average over */
 
 struct s_usb_camera usb_camera;
 static char fits_filename[2000];
@@ -774,6 +774,7 @@ int cmd_aoi(int argc, char **argv)
 		default: return error(ERROR,"Odd... we should never get here.");
 
 	}
+	return NOERROR
 
 } /* call_set_usb_cammera_aoi() */
 
@@ -817,10 +818,8 @@ int cmd_optimalcam(int argc, char **argv)
 
 	/* Output the results */
 
-	error(MESSAGE, "Max Clock: %d. Max Frame Rate: %6.1lf.",
+	return error(MESSAGE, "Max Clock: %d. Max Frame Rate: %6.1lf.",
 		pMaxPxlClk, pMaxFrameRate);
-
-	return NOERROR;
 
 } /* set_optimal_camera_timing() */
 
@@ -884,9 +883,8 @@ int cmd_fps(int argc, char **argv)
 		else return error(ERROR, "Unknown error setting Frame Rate");
 	}
 
-	error(MESSAGE, "Frames per sec now: %6.1lf", newFPS);
+	return error(MESSAGE, "Frames per sec now: %6.1lf", newFPS);
 
-	return NOERROR;
 }
 
 /************************************************************************/
@@ -1013,14 +1011,13 @@ int cmd_destripe(int argc, char **argv)
 	if (usb_camera.destripe)
 	{
 		usb_camera.destripe=FALSE;
-		error(MESSAGE, "NOT destriping the raw images.");
+		return error(MESSAGE, "NOT destriping the raw images.");
 	}
 	else
 	{
 		usb_camera.destripe=TRUE;
-		error(MESSAGE, "Destriping the raw images.");
+		return error(MESSAGE, "Destriping the raw images.");
 	}
-	return NOERROR;
 
 } /* toggle_destripe() */
 
@@ -1177,11 +1174,9 @@ int cmd_save(int argc, char **argv)
 		strcpy(fits_filename, filename);
 	}
 
-	error(MESSAGE,"Saving image data in %s.", fits_filename);
+    save_fits_file = TRUE;
 
-	save_fits_file = TRUE;
-
-	return NOERROR;
+	return error(MESSAGE,"Saving image data in %s.", fits_filename);
 
 } /* save_fits() */
 
@@ -1245,8 +1240,7 @@ int cmd_savecube(int argc, char **argv)
 
 	/* That should be all */
 
-	error(MESSAGE, "Trying to save %d frames of data.", n);
-	return NOERROR;
+	return error(MESSAGE, "Trying to save %d frames of data.", n);
 
 } /* save_fits_cube() */
 
@@ -1460,13 +1454,13 @@ void bgnd_complete_fits_cube(void)
 
 	/* Clean up memory go */
 
-	error(MESSAGE,  "Saved file %s", filename);
-
 	pthread_mutex_lock(&usb_camera_mutex);
 	image_data_cube_num_frames = 0;
         image_data_cube_count_frames = 0;
 	free(image_data_cube);
 	pthread_mutex_unlock(&usb_camera_mutex);
+	
+	return error(MESSAGE,  "Saved file %s", filename);
 
 } /* complete_fits_cube() */
 
@@ -1525,9 +1519,8 @@ int cmd_itime(int argc, char **argv)
 		else return error(ERROR, "Unknown error setting Frame Rate");
 	}
 
-	error(MESSAGE, "Exposure time now: %6.1lf", new_exptime);
+	return error(MESSAGE, "Exposure time now: %6.1lf", new_exptime);
 
-	return NOERROR;
 }
 
 

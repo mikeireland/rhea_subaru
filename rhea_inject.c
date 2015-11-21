@@ -1,4 +1,4 @@
-#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.3:1.0-port0"
+#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.8.1.3.4.2:1.0-port0"
 
 #include "zaber.h"
 #include "thor_usb.h"
@@ -27,8 +27,7 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero");
-	return NOERROR;
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero");
 }
 
 /* As we're doing this quickly... skip a header file for now */
@@ -122,7 +121,7 @@ int main(int argc, char **argv)
 				loop++;
 			}
 			if (functions[loop].function == NULL){
-				error(MESSAGE, "Unknown command: %s (strlen %d) \n", funct_strs[0], strlen(funct_strs[0]));
+				retval = error(MESSAGE, "Unknown command: %s (strlen %d) \n", funct_strs[0], strlen(funct_strs[0]));
 			} else {
 				retval = (*(functions[function_index].function))(funct_argc, funct_argv);
 			}

@@ -228,7 +228,7 @@ int cmd_zzero(int argc, char* argv[])
   if (argc > 1) return error(ERROR, "Usage: zzero");
   /* Starg by homing all of the motors*/
   zaber_home(0);
-  error(MESSAGE, "All motors now homing. Waiting for them to be at 0...");
+  message("All motors now homing. Waiting for them to be at 0...");
   while (postot != 0){
     sleep(1);
     postot=0;
@@ -248,9 +248,9 @@ int cmd_zzero(int argc, char* argv[])
     z_current_fixed_position[i]=0;
     usleep(200000); /* Hopefully more reliable? usleeps increased 14 Dec 2011 to help */
     zaber_move_abs(i, z_saved_positions[i][0]);
-    error(MESSAGE, "Motor %d at fixed 0 position.", i);
+    message("Motor %d at fixed 0 position.", i);
   }
-  return NOERROR;
+  return error(MESSAGE, "All motors homed!");
 } /* zaber_zero_all */
 
 /************************************************************************/

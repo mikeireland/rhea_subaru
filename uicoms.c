@@ -92,6 +92,12 @@ char	*server_name;			/* What we call ourselves */
 
 //static bool Messages_on = TRUE; 	/* Should we process messages? */
 
+int message(char *fmt, ...)
+{
+    fprintf(stderr, "%s\n", err_string);
+    return NOERROR;
+}
+
 int error(int level, char *fmt, ...)
 {
 	char err_string[4097];
@@ -181,10 +187,18 @@ int get_next_command(char *command)
   			if ((hp = gethostbyaddr((char *)&connector.sin_addr,
                                         len,connector.sin_family)) == NULL)
 			{
-				error(MESSAGE,
+				/*error(MESSAGE,
 				"Failed to identify host. Blocking socket.");
 				close(client_sockets[i].fd);
-				client_sockets[i].fd = -1;
+				client_sockets[i].fd = -1; */
+				if ((client_sockets[i].machine = 
+					malloc(32)) == NULL)
+				{
+					error(FATAL,
+				"Ran out of memory during a socket connection");
+				}
+				strcpy(client_sockets[i].machine,"Unknown Host");
+				fprintf(stderr, "Unknown IP address connected!");
 			}
 			else
 			{
@@ -197,9 +211,10 @@ int get_next_command(char *command)
 				"Ran out of memory during a socket connection");
 				}
 				strcpy(client_sockets[i].machine,hp->h_name);
-				fprintf(stderr, "[%s just connected] ", hp->h_name);
-				write(client_sockets[i].fd, "> ", 2);
 			}
+			fprintf(stderr, "[%s just connected] ", client_sockets[i].machine);
+			write(client_sockets[i].fd, "> ", 2);
+			
 		  } else return error(ERROR, "Ran out of slots for connections!");    
 		} 
 	}
