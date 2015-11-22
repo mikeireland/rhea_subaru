@@ -9,11 +9,14 @@ uicoms.o: uicoms.c uicoms.h
 zaber_control.o: zaber_control.c zaber.h
 	gcc -c -g  zaber_control.c
 
+zmqcoms.o: zmqcoms.c zmqcoms.h
+	gcc -c -g zmqcoms.c
+
 rhea_inject.o: rhea_inject.c
 	gcc -c -g rhea_inject.c
 
-rhea_inject: rhea_inject.o zaber_control.o uicoms.o thor_usb.o
-	gcc -o rhea_inject rhea_inject.o zaber_control.o uicoms.o thor_usb.o -lueye_api -lcfitsio -lz -lpthread -lm
+rhea_inject: rhea_inject.o zaber_control.o zmqcoms.o thor_usb.o
+	gcc -o rhea_inject rhea_inject.o zaber_control.o zmqcoms.o thor_usb.o -lueye_api -lcfitsio -lz -lpthread -lm -lzmq
 
 clean: 
 	rm *.o

@@ -1681,7 +1681,10 @@ int cmd_image(int argc, char **argv)
 
     send_raw_message(outstr,outlen);
 
+    free(compressed_image);
+    free(data);
 	return MESSAGE;
+//    return error(MESSAGE, "Testing...");
 }
 
 /* At the moment, this just saves the next image as a fits file if we've been asked
