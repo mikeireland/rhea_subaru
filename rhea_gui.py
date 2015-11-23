@@ -3,8 +3,8 @@ import sys
 import string
 import select
 import socket
-import Tkinter as Tk
-from PIL import Image, ImageTk
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 import numpy as np
 import zlib
 import pdb
@@ -14,13 +14,14 @@ import zmq
 class ClientSocket:
     MAX_BUFFER = 65536
 #    def __init__(self,IP="133.40.162.192", Port=3001):
-    def __init__(self,IP="150.203.89.12",Port=3001):
+#    def __init__(self,IP="150.203.89.12",Port=3001):
+    def __init__(self,IP="192.168.1.5",Port=3001):
         #NB See the prototype in macquarie-university-automation for a slightly neater start.
         ADS = (IP,Port)
         try:
             self.context = zmq.Context()
             self.client = self.context.socket(zmq.REQ)
-            self.client.connect("tcp://localhost:3001")
+            self.client.connect("tcp://"+IP+":3001")
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running.')
@@ -33,29 +34,36 @@ class ClientSocket:
         try: return self.client.recv(self.MAX_BUFFER)
         except Exception: return 'Error receiving response'
 
-class RHEAGui:
+class RHEAGui(QWidget):
     current_image=0;
     IMAGE_WIDTH=320;
     IMAGE_HEIGHT=256;
-    def __init__(self):
-        self.client_socket = ClientSocket() #IP="192.168.2.13"
-        self.win=Tk.Tk()
-        self.win.title("RHEA@Subaru Injection")
-        row = Tk.Frame(self.win)
-        Tk.Label(row, text='Command: ').pack(side=Tk.LEFT)
-        self.command = Tk.StringVar()
-        command_entry = Tk.Entry(row, textvariable=self.command)
-        command_entry.pack(side=Tk.RIGHT, expand=Tk.YES)
-        command_entry.bind("<Return>", self.send_to_server)
-        row.pack(fill=Tk.X)
-        self.response_label = Tk.Label(self.win, text="[No Server Response Yet]",\
-            height=6, width=40,justify=Tk.LEFT, bg='black', fg='green', anchor='w')
-        self.response_label.pack(fill=Tk.X)
-        imdata = np.zeros( (self.IMAGE_HEIGHT,self.IMAGE_WIDTH), dtype=np.uint8)
-        image = ImageTk.PhotoImage(Image.fromarray(imdata))
-        self.image_label = Tk.Label(self.win, image=image)
-        self.image_label.image=image
-        self.image_label.pack(fill=Tk.X)
+    def __init__(self, parent=None):
+        super(RHEAGui,self).__init__(parent)
+        self.client_socket = ClientSocket() 
+        lbl1 = QLabel('Command: ', self)
+        self.lineedit = QLineEdit("")
+        self.connect(self.lineedit, SIGNAL("returnPressed()"),
+                        self.send_to_server)
+        self.response_label = QLabel('[No Sever Response Yet]', self)
+        self.response_label.setFixedWidth(320)
+        self.response_label.setFixedHeight(100)
+        imdata = np.zeros( (self.IMAGE_HEIGHT,self.IMAGE_WIDTH), dtype=np.uint32)
+        image = QImage(imdata.tostring(),self.IMAGE_HEIGHT,self.IMAGE_WIDTH,QImage.Format_RGB32)
+        self.image_label = QLabel("",self)
+        self.image_label.setPixmap(QPixmap.fromImage(image))
+        
+        hbox1 = QHBoxLayout()
+        hbox1.addWidget(lbl1)
+        hbox1.addWidget(self.lineedit)
+        
+        layout = QVBoxLayout()
+        layout.addLayout(hbox1)
+        layout.addWidget(self.response_label)
+        layout.addWidget(self.image_label)
+        self.setLayout(layout)
+        self.setWindowTitle("RHEA@Subaru Injection")
+        self.stimer = QTimer()
         self.ask_for_image()
 
     def ask_for_image(self):
@@ -65,8 +73,8 @@ class RHEAGui:
             if (response.split(" ", 1)[0]=="image"):
                 self.display_image(response)
             else:
-                self.response_label['text']=response
-        self.win.after(100, self.ask_for_image)
+                self.response_label.setText(response)
+        self.stimer.singleShot(100, self.ask_for_image)
 
     def display_image(self, response):    
         argv = response.split(" ",3)
@@ -84,25 +92,27 @@ class RHEAGui:
                 imdata = np.fromstring(imdata, np.float32)
                 imdata = np.array(imdata).reshape( (self.IMAGE_HEIGHT,self.IMAGE_WIDTH) )
                 #Autoscale for now...
-                imdata = ( (imdata - np.min(imdata))/(np.max(imdata)-np.min(imdata))*255).astype(np.uint8)
-                image = ImageTk.PhotoImage(Image.fromarray(imdata))
-                self.image_label['image']=image
-                self.image_label.image=image    
+                imdata = ( (imdata - np.min(imdata))/np.maximum(np.max(imdata)-np.min(imdata),1)*255).astype(np.uint32)
+                imdata = imdata + (imdata<<8) + (imdata<<16)
+                image = QImage(imdata.tostring(),self.IMAGE_WIDTH,self.IMAGE_HEIGHT,QImage.Format_RGB32)
+                self.image_label.setPixmap(QPixmap.fromImage(image))
 
-    def send_to_server(self, event):
+    def send_to_server(self):
         if (self.client_socket.connected):
-            response = self.client_socket.send_command(self.command.get())
+            response = self.client_socket.send_command(str(self.lineedit.text()))
             if (response.split(" ", 1)[0]=="image"):
                 self.display_image(response)
             else:
-                self.response_label['text']=response
+                self.response_label.setText(response)
         else:
-            self.response_label['text']="*** Not Connected ***"
+            self.response_label.setText("*** Not Connected ***")
 
-        self.command.set("")
+        self.lineedit.setText("")
 
-TheGui = RHEAGui()
-TheGui.win.mainloop()        
+app = QApplication(sys.argv)
+myapp = RHEAGui()
+myapp.show()
+sys.exit(app.exec_())      
             
 
 
