@@ -49,7 +49,7 @@ class RHEAGui(QWidget):
         self.response_label.setFixedWidth(320)
         self.response_label.setFixedHeight(100)
         imdata = np.zeros( (self.IMAGE_HEIGHT,self.IMAGE_WIDTH), dtype=np.uint32)
-        image = QImage(imdata.tostring(),self.IMAGE_HEIGHT,self.IMAGE_WIDTH,QImage.Format_RGB32)
+        image = QImage(imdata.tostring(),self.IMAGE_WIDTH,self.IMAGE_HEIGHT,QImage.Format_RGB32)
         self.image_label = QLabel("",self)
         self.image_label.setPixmap(QPixmap.fromImage(image))
         
