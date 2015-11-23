@@ -49,9 +49,9 @@ class RHEAGui(QWidget):
         self.response_label.setFixedWidth(320)
         self.response_label.setFixedHeight(100)
         imdata = np.zeros( (self.IMAGE_HEIGHT,self.IMAGE_WIDTH), dtype=np.uint32)
-        image = QImage(imdata.tostring(),self.IMAGE_HEIGHT,self.IMAGE_WIDTH,QImage.Format_RGB32)
+        self.image = QImage(imdata.tostring(),self.IMAGE_WIDTH,self.IMAGE_HEIGHT,QImage.Format_RGB32)
         self.image_label = QLabel("",self)
-        self.image_label.setPixmap(QPixmap.fromImage(image))
+        self.image_label.setPixmap(QPixmap.fromImage(self.image))
         
         hbox1 = QHBoxLayout()
         hbox1.addWidget(lbl1)
@@ -74,7 +74,7 @@ class RHEAGui(QWidget):
                 self.display_image(response)
             else:
                 self.response_label.setText(response)
-        self.stimer.singleShot(100, self.ask_for_image)
+        self.stimer.singleShot(200, self.ask_for_image)
 
     def display_image(self, response):    
         argv = response.split(" ",3)
@@ -94,8 +94,9 @@ class RHEAGui(QWidget):
                 #Autoscale for now...
                 imdata = ( (imdata - np.min(imdata))/np.maximum(np.max(imdata)-np.min(imdata),1)*255).astype(np.uint32)
                 imdata = imdata + (imdata<<8) + (imdata<<16)
-                image = QImage(imdata.tostring(),self.IMAGE_WIDTH,self.IMAGE_HEIGHT,QImage.Format_RGB32)
-                self.image_label.setPixmap(QPixmap.fromImage(image))
+                self.image = QImage(imdata.tostring(),self.IMAGE_WIDTH,self.IMAGE_HEIGHT,QImage.Format_RGB32)
+#                pyqtRemoveInputHook(); pdb.set_trace()
+                self.image_label.setPixmap(QPixmap.fromImage(self.image))
 
     def send_to_server(self):
         if (self.client_socket.connected):
