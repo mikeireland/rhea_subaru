@@ -1,4 +1,5 @@
-#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.8.1.3.4.2:1.0-port0"
+//#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.8.1.3.4.2:1.0-port0"
+#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:14.0-usb-0:1:1.0-port0"
 
 #include "zaber.h"
 #include "thor_usb.h"

@@ -290,10 +290,10 @@ int zaber_init(void)
       if (abs(z_current_position[i] -z_saved_positions[i][j]) < 100)
 	z_current_fixed_position[i]=j;
   }
-  //zm.unit    = 0;
-  //zm.type    = ZABER_SET_MODE;
-  //zm.data    = ZABER_ENABLE_ANTI_BACKLASH | ZABER_ENABLE_ANTI_STICKTION | ZABER_DISABLE_POTENTIOMETER;
-  //zaber_send_command(zm, &answer);
+  zm.unit    = 0;
+  zm.type    = ZABER_SET_MODE;
+  zm.data    = ZABER_ENABLE_ANTI_BACKLASH | ZABER_ENABLE_ANTI_STICKTION | ZABER_DISABLE_POTENTIOMETER | ZABER_DISABLE_POWER_LED | ZABER_DISABLE_SERIAL_LED;
+  zaber_send_command(zm, &answer);
 	
   return NOERROR;
 } /* zaber_init */
