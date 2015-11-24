@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function, division
 import sys
 import string
@@ -15,12 +16,13 @@ class ClientSocket:
     MAX_BUFFER = 65536
 #    def __init__(self,IP="133.40.162.192", Port=3001):
 #    def __init__(self,IP="150.203.89.12",Port=3001):
-    def __init__(self,IP="127.0.0.1",Port=3003):
+    def __init__(self,IP="127.0.0.1",Port="3003"): #!!! Set this below - not here !!!
         #NB See the prototype in macquarie-university-automation for a slightly neater start.
         ADS = (IP,Port)
         try:
             self.context = zmq.Context()
             self.client = self.context.socket(zmq.REQ)
+            print(IP)
             self.client.connect("tcp://"+IP+":"+Port)
             self.connected=True
         except: 
@@ -38,9 +40,9 @@ class RHEAGui(QWidget):
     current_image=0;
     IMAGE_WIDTH=320;
     IMAGE_HEIGHT=256;
-    def __init__(self, parent=None):
+    def __init__(self, IP='127.0.0.1', parent=None):
         super(RHEAGui,self).__init__(parent)
-        self.client_socket = ClientSocket() 
+        self.client_socket = ClientSocket(IP=IP) 
         lbl1 = QLabel('Command: ', self)
         self.lineedit = QLineEdit("")
         self.connect(self.lineedit, SIGNAL("returnPressed()"),
@@ -64,7 +66,7 @@ class RHEAGui(QWidget):
         self.setLayout(layout)
         self.setWindowTitle("RHEA@Subaru Injection")
         self.stimer = QTimer()
-#        self.ask_for_image()
+        self.ask_for_image()
 
     def ask_for_image(self):
         command = "image {0:d}".format(self.current_image)
@@ -111,7 +113,10 @@ class RHEAGui(QWidget):
         self.lineedit.setText("")
 
 app = QApplication(sys.argv)
-myapp = RHEAGui()
+if len(sys.argv) > 1:
+    myapp = RHEAGui(IP=sys.argv[1])
+else:
+    myapp = RHEAGui()
 myapp.show()
 sys.exit(app.exec_())      
             
