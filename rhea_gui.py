@@ -15,7 +15,8 @@ class ClientSocket:
     MAX_BUFFER = 65536
 #    def __init__(self,IP="133.40.162.192", Port=3001):
 #    def __init__(self,IP="150.203.89.12",Port=3001):
-    def __init__(self,IP="192.168.1.5",Port=3001):
+#    def __init__(self,IP="192.168.1.5",Port=3001):
+    def __init__(self,IP="133.40.145.166",Port=3002):
         #NB See the prototype in macquarie-university-automation for a slightly neater start.
         ADS = (IP,Port)
         try:
@@ -64,7 +65,7 @@ class RHEAGui(QWidget):
         self.setLayout(layout)
         self.setWindowTitle("RHEA@Subaru Injection")
         self.stimer = QTimer()
-        self.ask_for_image()
+#        self.ask_for_image()
 
     def ask_for_image(self):
         command = "image {0:d}".format(self.current_image)
