@@ -22,8 +22,10 @@ class ClientSocket:
         try:
             self.context = zmq.Context()
             self.client = self.context.socket(zmq.REQ)
-            print(IP)
-            self.client.connect("tcp://"+IP+":"+Port)
+            tcpstring = "tcp://"+IP+":"+Port
+            print(tcpstring)
+            self.client.connect(tcpstring)
+            self.client.RCVTIMEO = 1000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running.')
@@ -31,10 +33,15 @@ class ClientSocket:
 
     def send_command(self, command):
         """WARNING: currently a blocking send/recv!"""
-        try: self.client.send(command)
-        except Exception: return 'Error sending command, connection likely lost.'
-        try: return self.client.recv(self.MAX_BUFFER)
-        except Exception: return 'Error receiving response'
+        try: 
+            self.client.send(command,zmq.NOBLOCK)
+            self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+        except:
+#            self.connected=False 
+#            self.client.close()
+            return 'Error sending command, connection lost.'
+#        try: return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+#        except Exception: return 'Error receiving response'
 
 class RHEAGui(QWidget):
     current_image=0;
@@ -69,6 +76,7 @@ class RHEAGui(QWidget):
         self.ask_for_image()
 
     def ask_for_image(self):
+#        if not self.client_socket.connected: return
         command = "image {0:d}".format(self.current_image)
         if (self.client_socket.connected):
             response = self.client_socket.send_command(command)
