@@ -35,7 +35,7 @@ class ClientSocket:
         """WARNING: currently a blocking send/recv!"""
         try: 
             self.client.send(command,zmq.NOBLOCK)
-            self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+            return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
         except:
 #            self.connected=False 
 #            self.client.close()
