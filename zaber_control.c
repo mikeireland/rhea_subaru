@@ -632,12 +632,12 @@ int cmd_xy(int argc, char *argv[])
 /* Do two relative moves, to a fixed position                           */
 /************************************************************************/
 
-int cmd_xy(int argc, char *argv[])
+int cmd_xyf(int argc, char *argv[])
 {
   int new_fixed=0;
-  if (argc != 3)  return error(ERROR, "Usage: xyf [fixed_position]");
+  if (argc != 2)  return error(ERROR, "Usage: xyf [fixed_position]");
   if (sscanf(argv[1], "%d", &new_fixed) != 1) return error(ERROR, "Error parsing new_fixed.");
-  zaber_goto_fixed_position(IFU_X, new_fixed)
+  zaber_goto_fixed_position(IFU_X, new_fixed);
   usleep(1000); /* Just in case needed. */
   zaber_goto_fixed_position(IFU_Y, new_fixed);
   return NOERROR;

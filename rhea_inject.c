@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 	}
 
 	open_zaber_port(ZABER_SERIAL);
+	cmd_zreadposfile(0,NULL);
 	if (open_usb_camera() != NOERROR) fprintf(stderr, "Could not open USB camera");
 
 	/* Get ready for accepting connections... */
