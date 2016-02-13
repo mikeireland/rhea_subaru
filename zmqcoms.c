@@ -45,7 +45,7 @@
 #include <netinet/tcp.h>
 
 #define MAX_CONNECTIONS 10
-#define SERVER_PORT 3003
+#define SERVER_PORT 3001
 #define SERVER_SOCKET_BUFFER 65536
 
 #undef max
