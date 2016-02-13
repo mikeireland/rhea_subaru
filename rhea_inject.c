@@ -30,7 +30,7 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero");
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf");
 }
 
 /* As we're doing this quickly... skip a header file for now */
@@ -68,6 +68,8 @@ struct {
 		{"zmovabs",	cmd_zmovabs},
 		{"zsetpos",	cmd_zsetpos},
 		{"zgetpos",	cmd_zgetpos},
+		{"xy",	cmd_xy},
+		{"xyf", cmd_xyf},
 		/* NULL to terminate */
 		{NULL,		NULL}};
 

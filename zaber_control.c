@@ -14,7 +14,8 @@
 #include <sys/time.h>
 
 #define ZABER_TIME_OUT	10
-
+#define IFU_X 1
+#define IFU_Y 2
 char *zaber_names[NUM_ZABER+1] = {"IFU_X", "IFU_Y", "FOCUS",NULL};
 
 /* Globals declared in zaber.h */
@@ -607,3 +608,37 @@ int cmd_zgetpos(int argc, char *argv[])
   return error(MESSAGE, "Unit %d has position %d.", unit,zaber_get_position(unit));
 } /* user_zaber_get_position()*/
 
+/************************************************************************/
+/* cmd_xy()                                                             */
+/*                                                                      */
+/* Do two relative moves.                                               */
+/************************************************************************/
+
+int cmd_xy(int argc, char *argv[])
+{
+  int nxsteps=0,nysteps=0;
+  if (argc != 3)  return error(ERROR, "Usage: xy [xsteps] [ysteps]");
+  if (sscanf(argv[1], "%d", &nxsteps) != 1) return error(ERROR, "Error parsing xsteps.");
+  if (sscanf(argv[2], "%d", &nysteps) != 1) return error(ERROR, "Error parsing ysteps.");
+  zaber_move_rel(IFU_X, nxsteps);
+  usleep(1000); /* Just in case needed. */
+  zaber_move_rel(IFU_Y, nysteps);
+  return NOERROR;
+} /* cmd_xy()*/
+
+/************************************************************************/
+/* cmd_xyf()                                                             */
+/*                                                                      */
+/* Do two relative moves, to a fixed position                           */
+/************************************************************************/
+
+int cmd_xy(int argc, char *argv[])
+{
+  int new_fixed=0;
+  if (argc != 3)  return error(ERROR, "Usage: xyf [fixed_position]");
+  if (sscanf(argv[1], "%d", &new_fixed) != 1) return error(ERROR, "Error parsing new_fixed.");
+  zaber_goto_fixed_position(IFU_X, new_fixed)
+  usleep(1000); /* Just in case needed. */
+  zaber_goto_fixed_position(IFU_Y, new_fixed);
+  return NOERROR;
+} /* cmd_xyf()*/

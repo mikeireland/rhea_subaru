@@ -113,3 +113,5 @@ extern int cmd_zgetpos(int argc, char *argv[]);
 extern int cmd_zzero(int argc, char* argv[]);
 extern int cmd_zreadposfile(int argc, char* argv[]);
 extern int cmd_zwriteposfile(int argc, char* argv[]);
+extern int cmd_xy(int argc, char* argv[]);
+extern int cmd_xyf(int argc, char* argv[]);

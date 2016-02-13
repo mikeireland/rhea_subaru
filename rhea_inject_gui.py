@@ -16,7 +16,7 @@ class ClientSocket:
     MAX_BUFFER = 65536
 #    def __init__(self,IP="133.40.162.192", Port=3001):
 #    def __init__(self,IP="150.203.89.12",Port=3001):
-    def __init__(self,IP="127.0.0.1",Port="3003"): #!!! Set this below - not here !!!
+    def __init__(self,IP="127.0.0.1",Port="3001"): #!!! Set this below - not here !!!
         #NB See the prototype in macquarie-university-automation for a slightly neater start.
         ADS = (IP,Port)
         try:
@@ -25,7 +25,7 @@ class ClientSocket:
             tcpstring = "tcp://"+IP+":"+Port
             print(tcpstring)
             self.client.connect(tcpstring)
-            self.client.RCVTIMEO = 1000
+            self.client.RCVTIMEO = 10000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running.')
