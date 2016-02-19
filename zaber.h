@@ -109,6 +109,7 @@ extern int cmd_zmovrel(int argc, char* argv[]);
 extern int cmd_zmovabs(int argc, char* argv[]);
 extern int cmd_zsetpos(int argc, char* argv[]);
 extern int cmd_zgotofixed(int argc, char * argv[]);
+extern int cmd_zgetfixed(int argc, char * argv[]);
 extern int cmd_zgetpos(int argc, char *argv[]);
 extern int cmd_zzero(int argc, char* argv[]);
 extern int cmd_zreadposfile(int argc, char* argv[]);

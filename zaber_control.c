@@ -14,8 +14,8 @@
 #include <sys/time.h>
 
 #define ZABER_TIME_OUT	10
-#define IFU_X 1
-#define IFU_Y 2
+#define IFU_X 2
+#define IFU_Y 1
 char *zaber_names[NUM_ZABER+1] = {"IFU_X", "IFU_Y", "FOCUS",NULL};
 
 /* Globals declared in zaber.h */
@@ -124,7 +124,7 @@ int cmd_zreadposfile(int argc, char* argv[])
   if (argc < 2) strcpy(fname, ZABER_POSITION_FILE);
   else strcpy(fname, argv[1]);
   if ( (zaber_file = fopen(fname,"r")) == NULL ) 
-    return error(ERROR, "Could not open pavo Zaber file: %s.", fname);
+    return error(ERROR, "Could not open Zaber file: %s.", fname);
   for (i=1;i<=NUM_ZABER;i++){
     if (fgets(s, 80, zaber_file) == NULL) return error(ERROR, "Could not read all lines in Zaber file.");
     if (sscanf(s, "%d %d %d %d",  &(z_saved_positions[i][0]), &(z_saved_positions[i][1]), 
@@ -217,6 +217,20 @@ int cmd_zgotofixed(int argc, char * argv[])
 } /* user_zaber_goto_fixed_position() */
 
 /************************************************************************/
+/* cmd_zgetfixed                                                         */
+/*                                                                      */
+/* Get the current fixed positions.                                     */
+/************************************************************************/
+int cmd_zgetfixed(int argc, char * argv[])
+{
+  char retstring[20]; 
+  sprintf(retstring, "zgetfixed %d %d %d", z_current_fixed_position[1],z_current_fixed_position[2],z_current_fixed_position[3]);
+  
+  return error(MESSAGE,retstring);
+} /* cmd_zgetfixed() */
+
+
+/************************************************************************/
 /* zaber_zero_all                                                       */
 /*                                                                      */
 /* This needs to be called whenever the power on the zaber units is     */
@@ -288,7 +302,7 @@ int zaber_init(void)
     z_current_fixed_position[i]=0;
     /* If we are at a current fixed position, then set that appropriately. */
     for (j=NUM_ZABER_FIXED-1;j>0;j--)
-      if (abs(z_current_position[i] -z_saved_positions[i][j]) < 100)
+      if (abs(z_current_position[i] -z_saved_positions[i][j]) < 1000)
 	z_current_fixed_position[i]=j;
   }
   zm.unit    = 0;

@@ -24,14 +24,26 @@
 #define SECS_FOR_PROC  2
 #define NUM_MIN 10 /*The number of minimum pixels in each row to average over */
 
+#define LED_OFF 0
+#define LED_ON 1
+#define LED_UNKNOWN 2
+
 struct s_usb_camera usb_camera;
+
 static char fits_filename[2000];
 static bool save_fits_file = FALSE;
 static float *data_frames[NUM_IMAGE_MEM];
 static float *dark;
 static float *sum_frame;
+static float *on_sum_frame;
+static float *off_sum_frame;
+static float *demod_frame;
 static float *this_frame;
+static int led_status=LED_UNKNOWN;
 static int num_sum_frame = 1;
+static int num_demod_frame = 4;
+static int count_demod_frame_on = 0;
+static int count_demod_frame_off = 0;
 static int count_sum_frame = 0;
 static int current_data_frame_ix=0;
 static unsigned int last_max=0, last_min=0, last_mean=0;
@@ -54,6 +66,7 @@ static pthread_mutex_t usb_camera_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t usb_camera_thread;
 static bool usb_camera_running = FALSE;
 static int usb_camera_num_frames = 0;
+static int usb_camera_num_demod_frames = 0;
 static int usb_camera_last_num_frames=0;
 static void (*usb_camera_callback)(time_t time_stamp,
 		float *data, int width, int height) = NULL;
@@ -158,12 +171,16 @@ int open_usb_camera(void)
 
 	for (i=0;i<NUM_IMAGE_MEM;i++)
 		data_frames[i] = malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
-	dark = malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
-	sum_frame = malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
-	this_frame = malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
+	dark =          malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
+	sum_frame =     malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
+    on_sum_frame =  malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
+    off_sum_frame = malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
+    demod_frame =   malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
+	this_frame =    malloc(cam_info.nMaxWidth*cam_info.nMaxHeight*sizeof(float));
 
 	for (i=0;i<cam_info.nMaxHeight;i++)
 	for (j=0;j<cam_info.nMaxWidth;j++) dark[i*cam_info.nMaxWidth + j]=0.0;
+    for (j=0;j<cam_info.nMaxWidth;j++) demod_frame[i*cam_info.nMaxWidth + j]=0.0;
 
 	bits_per_pixel = 8;
 
@@ -219,22 +236,14 @@ int open_usb_camera(void)
 			"Failed to get size incriment (%d).\n",i);
 	}
 	
-	/* Default is the whole camera */
-
-	rectAOI.s32X = 0;
-	rectAOI.s32Y = 0;
-	rectAOI.s32Width = cam_info.nMaxWidth;
-	rectAOI.s32Height = cam_info.nMaxHeight;
-	
-	if ((i = is_AOI(cam_pointer,  IS_AOI_IMAGE_SET_AOI,
-				&rectAOI, sizeof(rectAOI))))
+	/* Default is the central quarter camera */
+    if ((i = set_usb_camera_aoi(cam_info.nMaxWidth/4,cam_info.nMaxHeight/4,cam_info.nMaxWidth/2,cam_info.nMaxHeight/2)))
 	{
 		close_usb_camera();
 		return error(ERROR,"Failed to set AOI (%d).\n",i);
 	} 
 
 	/* With luck that worked */
-
 	if ((i = is_AOI(cam_pointer,  IS_AOI_IMAGE_GET_AOI,
 					&rectAOI, sizeof(rectAOI))))
 	{
@@ -358,6 +367,9 @@ int close_usb_camera(void)
 
 	free(dark);
 	free(sum_frame);
+    free(on_sum_frame);
+//    free(off_sum_frame); /* !!! This gives an error !!! No idea why, but it is clearly an issue.*/
+    free(demod_frame);
 	free(this_frame);
 
 	for(j = 0; j< NUM_IMAGE_MEM; j++)
@@ -478,13 +490,51 @@ void *do_usb_camera(void *arg)
 
 		/* Sum this frame in? */
 
-                for(j =0; j < rectAOI.s32Height; j++)
-                {
+        for(j =0; j < rectAOI.s32Height; j++)
+            {
                     for(i=0; i < rectAOI.s32Width; i++)
                     {
 			sum_frame[j*rectAOI.s32Width + i] += this_frame[j*rectAOI.s32Width + i];
 		    }
 		}
+
+        /* Check the demodulated frames...*/
+        if (led_status==LED_OFF){
+            for(j =0; j < rectAOI.s32Height; j++)
+            {
+                    for(i=0; i < rectAOI.s32Width; i++)
+                    {
+			        off_sum_frame[j*rectAOI.s32Width + i] += this_frame[j*rectAOI.s32Width + i];
+		            }
+		    }
+            count_demod_frame_off += 1; 
+        }
+        if (led_status==LED_ON){
+            for(j =0; j < rectAOI.s32Height; j++)
+            {
+                    for(i=0; i < rectAOI.s32Width; i++)
+                    {
+			        on_sum_frame[j*rectAOI.s32Width + i] += this_frame[j*rectAOI.s32Width + i];
+		            }
+		    }
+            count_demod_frame_on += 1; 
+        }  
+        if ( (count_demod_frame_on >= num_demod_frame) && (count_demod_frame_off >= num_demod_frame)){
+            usb_camera_num_demod_frames++;
+            for(j =0; j < rectAOI.s32Height; j++)
+                {
+                    for(i=0; i < rectAOI.s32Width; i++)
+                    {
+			            demod_frame[j*rectAOI.s32Width + i] = on_sum_frame[j*rectAOI.s32Width + i]/count_demod_frame_on -  
+                               off_sum_frame[j*rectAOI.s32Width + i]/count_demod_frame_off;
+			            on_sum_frame[j*rectAOI.s32Width + i] = 0.0;
+                        off_sum_frame[j*rectAOI.s32Width + i] = 0.0;
+		            }
+                }
+            count_demod_frame_on=0;
+            count_demod_frame_off=0;        
+        }
+
 
 		/* Is that it? */
 
@@ -682,8 +732,8 @@ int set_usb_camera_aoi(int x, int y, int width, int height)
 	if (width < size_min.s32X || height < size_min.s32Y) return -7;
 
 	usb_camera.x = newAOI.s32X = x;
-	usb_camera.dx = newAOI.s32Y = y;
-	usb_camera.y = newAOI.s32Width = width;
+	usb_camera.y = newAOI.s32Y = y;
+	usb_camera.dx = newAOI.s32Width = width;
 	usb_camera.dy = newAOI.s32Height = height;
 
 	if (is_AOI(cam_pointer, IS_AOI_IMAGE_SET_AOI, &newAOI, sizeof(newAOI)))
@@ -743,7 +793,7 @@ int cmd_aoi(int argc, char **argv)
 	}
 	else
 	{
-		return error(ERROR, "Useage: camsetaoi [x] [y] [width] [height]");
+		return error(ERROR, "Useage: aoi [x] [y] [width] [height]");
 	}
 
 	switch(set_usb_camera_aoi(x, y, width, height))
@@ -852,6 +902,7 @@ double set_frame_rate(double fps)
 		return -3.0;
 
 	usb_camera.fps = newFPS;
+    usb_camera.exptime = dummy_exposure;
 
 	return (newFPS);
 
@@ -1488,16 +1539,16 @@ double usb_camera_set_exptime(double exposure_in)
 			return -2.0;
 	}
 
-	usb_camera.exptime = exposure_in;
+	usb_camera.exptime = exposure;
 
 	return exposure;
 
-} /* set_frame_rate() */
+} /* usb_camera_set_exptime() */
 
 /************************************************************************/
-/* call_set_frame_rate()				    		*/
-/*									*/
-/* User Callable version of set_frame_rate  				*/
+/* cmd_itime()	                                   			    		*/
+/*		                                   							    */
+/* User Callable version of usb_camera_set_exptime      				*/
 /************************************************************************/
 
 int cmd_itime(int argc, char **argv)
@@ -1574,6 +1625,31 @@ int cmd_setnframe(int argc, char **argv)
 
 } /* call_set_num_sum_frame() */
 
+/************************************************************************/
+/* cmd_led()						*/
+/*									*/
+/* Tell us that the led is on, off or unknown.						*/
+/************************************************************************/
+
+int cmd_led(int argc, char **argv)
+{
+	int	num=-1;
+
+	if (argc > 1)
+	{
+		sscanf(argv[1],"%d",&num);
+	}
+    else return error(ERROR, "Useage: led [0|1|2] for off/on/unknown");
+    if ( (num<0) || (num>2) ){
+        return error(ERROR, "led setting out of bounds!");
+    }
+
+	led_status=num;
+
+	return NOERROR;
+
+} /* cmd_led() */
+
 /******************************************************************************/
 /* cmd_image()                                                                */
 /*                                                                            */
@@ -1585,34 +1661,43 @@ int cmd_setnframe(int argc, char **argv)
 #define NUM_IMAGE_LEVELS 32
 int cmd_image(int argc, char **argv)
 {
-	int client_last_frame=0, i, j, x, y, current_frame;
+	int client_last_frame=0, i, j, x, y, current_frame, use_demod=0;
 	uLongf len, clen;
 	unsigned int outlen;
 	char outstr[IMAGE_BUFFER + 16], *compressed_image;
-	float *data, *fp;
+	float *data, *fp, *frame_to_use;
 	float values[USB_DISP_X*USB_DISP_Y];
 	float x_zero, y_zero;
 	float last_fmax=-1e32, last_fmin=1e32, delta;
 	if (client_socket==-1) return error(ERROR, "Command image only valid for non-text clients");
 	if (argc >= 2){
-		if (sscanf(argv[1], "%d", &client_last_frame)==0)
-		 return error(ERROR, "Useage: image [NUM]");
-		if (usb_camera_num_frames == client_last_frame)
-		 return error(MESSAGE, "image %d 0", client_last_frame);
+        if (argv[1][0] == 'd'){
+            use_demod=1;
+		} else {
+            if (sscanf(argv[1], "%d", &client_last_frame)==0)
+	    	 return error(ERROR, "Useage: image [NUM]");
+		    if (usb_camera_num_frames == client_last_frame)
+		     return error(MESSAGE, "image %d 0", client_last_frame);
+        }
 	}
 	/* Copy the image data */
 	data = (float *)calloc((size_t)rectAOI.s32Height *
 		(size_t)rectAOI.s32Width, sizeof(float));
 	if (data == NULL) error(FATAL,"Not enough memory");
 	pthread_mutex_lock(&usb_camera_mutex);	
+    if (use_demod) frame_to_use=demod_frame; 
+    else {
+        frame_to_use=data_frames[current_data_frame_ix];
+        current_frame = usb_camera_num_frames;
+    }
+        
 	for(fp = data, j = 0; j < rectAOI.s32Height; j++)
-	for(i = 0; i < rectAOI.s32Width; i++){ ;
-		*fp = data_frames[current_data_frame_ix][j*rectAOI.s32Width + i];
+	for(i = 0; i < rectAOI.s32Width; i++){ 
+		*fp = frame_to_use[j*rectAOI.s32Width + i];
 		if (*fp > last_fmax) last_fmax=*fp;
 		if (*fp < last_fmin) last_fmin=*fp;
 		fp++;
 	}
-	current_frame = usb_camera_num_frames;
 	pthread_mutex_unlock(&usb_camera_mutex);
 
 	/* How do we translate from the image to our array? */
@@ -1674,7 +1759,8 @@ int cmd_image(int argc, char **argv)
              return error(ERROR,
 		"Failed to compress image. %d",i);
         }
-	sprintf(outstr, "image %d %d ", current_frame, (int)clen);
+    if (use_demod) sprintf(outstr, "image d %d ", (int)clen);
+	else sprintf(outstr, "image %d %d ", current_frame, (int)clen);
 	outlen = clen + strlen(outstr);
 	if (outlen > IMAGE_BUFFER) return error(ERROR, "Compressed image too large!");
 	memcpy(outstr + strlen(outstr), compressed_image, clen);

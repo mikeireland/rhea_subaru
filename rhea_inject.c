@@ -30,7 +30,37 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf");
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled");
+}
+
+/************************************************************************/
+/* cmd_status                                                           */
+/*                                                                      */
+/* Get the status of everything important.                              */
+/************************************************************************/
+int cmd_status(int argc, char **argv){
+    char retstring[512];
+    char tempstr[80];
+    int i;
+    /* Construct a return string containing a (manual!) json encoding
+        of the status. */
+    strcpy(retstring, "status ");
+    strcat(retstring, "{\"pos\": [");
+    for (i=1;i<=NUM_ZABER;i++){
+        sprintf(tempstr, "%d", z_current_position[i]);
+        strcat(retstring, tempstr);
+        if (i<NUM_ZABER) strcat(retstring, ", ");
+    }
+    strcat(retstring, "], \"fixed\": [");
+    for (i=1;i<=NUM_ZABER;i++){
+        sprintf(tempstr, "%d", z_current_fixed_position[i]);
+        strcat(retstring, tempstr);
+        if (i<NUM_ZABER) strcat(retstring, ", ");
+    }
+    sprintf(tempstr, "], \"fps\": %5.1f, \"exptime\": %5.1f, \"aoi\": [%d, %d, %d, %d]}",
+        usb_camera.fps, usb_camera.exptime, usb_camera.x, usb_camera.y, usb_camera.dx, usb_camera.dy);
+    strcat(retstring, tempstr);
+    return error(MESSAGE, retstring);
 }
 
 /* As we're doing this quickly... skip a header file for now */
@@ -70,6 +100,9 @@ struct {
 		{"zgetpos",	cmd_zgetpos},
 		{"xy",	cmd_xy},
 		{"xyf", cmd_xyf},
+        {"zgetfixed", cmd_zgetfixed},
+        {"status", cmd_status},
+        {"led", cmd_led},
 		/* NULL to terminate */
 		{NULL,		NULL}};
 
@@ -93,6 +126,7 @@ int main(int argc, char **argv)
 
 	open_zaber_port(ZABER_SERIAL);
 	cmd_zreadposfile(0,NULL);
+	zaber_init();
 	if (open_usb_camera() != NOERROR) fprintf(stderr, "Could not open USB camera");
 
 	/* Get ready for accepting connections... */
