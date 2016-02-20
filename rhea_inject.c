@@ -30,7 +30,7 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled");
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject");
 }
 
 /************************************************************************/
@@ -103,6 +103,7 @@ struct {
         {"zgetfixed", cmd_zgetfixed},
         {"status", cmd_status},
         {"led", cmd_led},
+        {"object", cmd_object},
 		/* NULL to terminate */
 		{NULL,		NULL}};
 

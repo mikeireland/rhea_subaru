@@ -31,6 +31,7 @@
 struct s_usb_camera usb_camera;
 
 static char fits_filename[2000];
+static char tgt_name[80];
 static bool save_fits_file = FALSE;
 static float *data_frames[NUM_IMAGE_MEM];
 static float *dark;
@@ -318,6 +319,9 @@ int open_usb_camera(void)
 		return error(ERROR,
 			"Failed to set frame rate. Errror %3.2lf", ferr);
 	}
+
+    /* Intitialise the target name for saving (!!!Not sure if this should be here!!!)*/
+    tgt_name[0]=0;
 
 	/* That should be it */
 
@@ -1198,7 +1202,7 @@ int cmd_save(int argc, char **argv)
 
 		/* Now we try and create a new filename */
 
-		sprintf(filename_base,"test");
+		sprintf(filename_base,"data/image");
 //"%s%4d_%02d_%02d_%s_",
 //			get_data_directory(s), year,month,day,labao_name);
 
@@ -1335,7 +1339,7 @@ void bgnd_complete_fits_cube(void)
 
 	/* Now we try and create a new filename */
 
-	sprintf(filename_base,"cube");
+	sprintf(filename_base,"data/cube");
 //"%s%4d_%02d_%02d_%s_wfs_",
 //		get_data_directory(s), year,month,day,labao_name);
 
@@ -1396,6 +1400,12 @@ void bgnd_complete_fits_cube(void)
 	}
 
 	/* Now some header infromation */
+    if(fits_update_key(fptr, TSTRING, "OBJECT", tgt_name,
+		"Target Name", &fits_status))
+	{
+		error(ERROR,"Failed to write OBJECT.",
+		fits_status);
+	}
 
 	if(fits_update_key(fptr, TINT, "NUMFRAME", &image_data_cube_num_frames,
 		"Number of frames", &fits_status))
@@ -1650,6 +1660,30 @@ int cmd_led(int argc, char **argv)
 
 } /* cmd_led() */
 
+/************************************************************************/
+/* cmd_object()						*/
+/*									*/
+/* Set the object name.						*/
+/************************************************************************/
+
+int cmd_object(int argc, char **argv)
+{
+	int i;
+
+	if (argc > 1)
+	{
+        strcpy(tgt_name,argv[1]);
+        for (i=2;i<argc;i++){
+            strcat(tgt_name," ");
+            strcat(tgt_name,argv[i]);
+		}
+	}
+    else return error(ERROR, "Useage: object [name]");
+
+	return NOERROR;
+
+} /* cmd_led() */
+
 /******************************************************************************/
 /* cmd_image()                                                                */
 /*                                                                            */
@@ -1868,6 +1902,13 @@ void bgnd_usb_camera(void)
 	    
 
 		/* Now some header infromation */
+
+        if(fits_update_key(fptr, TSTRING, "OBJECT", tgt_name,
+		"Target Name", &fits_status))
+	    {
+		    error(ERROR,"Failed to write OBJECT.",
+    		fits_status);
+	    }
 
 		if(fits_update_key(fptr, TINT, "SENSORID", 
 			&(cam_info.SensorID), "Sensor ID",&fits_status))
