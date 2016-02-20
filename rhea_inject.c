@@ -30,7 +30,7 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject");
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject\tconfigure");
 }
 
 /************************************************************************/
@@ -61,6 +61,30 @@ int cmd_status(int argc, char **argv){
         usb_camera.fps, usb_camera.exptime, usb_camera.x, usb_camera.y, usb_camera.dx, usb_camera.dy);
     strcat(retstring, tempstr);
     return error(MESSAGE, retstring);
+}
+
+/************************************************************************/
+/* cmd_configure                                                        */
+/*                                                                      */
+/* Configure the SCExAO bench for RHEA or VAMPIRES.                     */
+/************************************************************************/
+int cmd_configure(int argc, char **argv){
+    if (argc != 2)
+        return error(ERROR, "Useage: configure [rhea|vampires]");
+    if (strcmp(argv[1], "rhea")==0){
+        if (system("ssh lestat@vampires '/home/lestat/code/script/conex 2 pa 143'"))
+            return error(ERROR, "Could not execute command on vampires.");
+        if (system("rhea_pickoff in"))
+            return error(ERROR, "Could not move RHEA pickoff.");
+    } else if (strcmp(argv[1], "vampires")==0){
+        if (system("ssh lestat@vampires '/home/lestat/code/script/conex 2 pa 0'"))
+            return error(ERROR, "Could not execute command on vampires.");
+        if (system("rhea_pickoff out"))
+            return error(ERROR, "Could not move RHEA pickoff.");
+    } else {
+        return error(ERROR, "Useage: configure [rhea|vampires]");
+    }
+
 }
 
 /* As we're doing this quickly... skip a header file for now */
@@ -104,6 +128,7 @@ struct {
         {"status", cmd_status},
         {"led", cmd_led},
         {"object", cmd_object},
+        {"configure", cmd_configure},
 		/* NULL to terminate */
 		{NULL,		NULL}};
 
