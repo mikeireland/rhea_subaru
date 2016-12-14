@@ -4,8 +4,18 @@ import sys
 import string
 import select
 import socket
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+try:
+    from PyQt4.QtGui import *
+    from PyQt4.QtCore import *
+except:
+    #Following doesn't work! Signals are different in PyQt5...
+    try:
+        from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit
+        print("PyQt5 support not enabled! Downgrade to PyQt4.")
+        raise UserWarning
+    except:
+        print("Please install PyQt4.")
+        raise UserWarning
 import numpy as np
 import zlib
 import pdb
@@ -31,7 +41,7 @@ class ClientSocket:
             tcpstring = "tcp://"+IP+":"+Port
             print(tcpstring)
             self.client.connect(tcpstring)
-            self.client.RCVTIMEO = 10000
+            self.client.RCVTIMEO = 20000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running and IP is correct.')
