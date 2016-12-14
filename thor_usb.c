@@ -181,6 +181,7 @@ int open_usb_camera(void)
 
 	for (i=0;i<cam_info.nMaxHeight;i++)
 	for (j=0;j<cam_info.nMaxWidth;j++) dark[i*cam_info.nMaxWidth + j]=0.0;
+    for (j=0;j<cam_info.nMaxWidth;j++) sum_frame[i*cam_info.nMaxWidth + j]=0.0;
     for (j=0;j<cam_info.nMaxWidth;j++) demod_frame[i*cam_info.nMaxWidth + j]=0.0;
 
 	bits_per_pixel = 8;
@@ -369,7 +370,7 @@ int close_usb_camera(void)
 	error(MESSAGE,"Releasing Camera Memory.");
 	for (i=0;i<NUM_IMAGE_MEM;i++) free(data_frames[i]);
 
-	free(dark);
+//	free(dark);
 	free(sum_frame);
     free(on_sum_frame);
 //    free(off_sum_frame); /* !!! This gives an error !!! No idea why, but it is clearly an issue.*/
@@ -492,15 +493,15 @@ void *do_usb_camera(void *arg)
 		last_mean /= rectAOI.s32Width;
 		last_mean /= rectAOI.s32Height;
 
-		/* Sum this frame in? */
+		/* Sum this frame in. */
 
         for(j =0; j < rectAOI.s32Height; j++)
             {
-                    for(i=0; i < rectAOI.s32Width; i++)
-                    {
-			sum_frame[j*rectAOI.s32Width + i] += this_frame[j*rectAOI.s32Width + i];
+               for(i=0; i < rectAOI.s32Width; i++)
+               {
+			        sum_frame[j*rectAOI.s32Width + i] += this_frame[j*rectAOI.s32Width + i];
+		       }
 		    }
-		}
 
         /* Check the demodulated frames...*/
         if (led_status==LED_OFF){
@@ -544,33 +545,36 @@ void *do_usb_camera(void *arg)
 
 		if (++count_sum_frame < num_sum_frame)
 		{
+            /* Unlock this for the next one. Not actually sure what this is... */
+		    is_UnlockSeqBuf(cam_pointer, IS_IGNORE_PARAMETER, usb_camera_image);
 			pthread_mutex_unlock(&usb_camera_mutex);
 			usleep(1000);
 			continue;
 		}
 		
-                /* We got a frame! */
+        /* We got a frame! */
 
-                usb_camera_num_frames++;
-		count_sum_frame = 0;
+        usb_camera_num_frames++;
+        count_sum_frame = 0;
 
-                /* 
-                 * Now that the data is transferred, increment the data pointer 
-                 * NB this is inside the mutex.
-                 */
+        /* 
+         * Now that the data is transferred, increment the data pointer 
+         * NB this is inside the mutex.
+         */
 
-                current_data_frame_ix++;
-                current_data_frame_ix = current_data_frame_ix % NUM_IMAGE_MEM;
-                data =  data_frames[current_data_frame_ix];
+        current_data_frame_ix++;
+        current_data_frame_ix = current_data_frame_ix % NUM_IMAGE_MEM;
+        data =  data_frames[current_data_frame_ix];
 
-                for(j =0; j < rectAOI.s32Height; j++)
-                {
-                    for(i=0; i < rectAOI.s32Width; i++)
-                    {
-			data[j*rectAOI.s32Width + i] = sum_frame[j*rectAOI.s32Width + i]/num_sum_frame - dark[j*rectAOI.s32Width + i];
-			sum_frame[j*rectAOI.s32Width + i] = 0.0;
-		    }
-		}
+        for(j =0; j < rectAOI.s32Height; j++)
+          {
+            for(i=0; i < rectAOI.s32Width; i++)
+              {
+              //data[j*rectAOI.s32Width + i] = sum_frame[j*rectAOI.s32Width + i]/num_sum_frame - dark[j*rectAOI.s32Width + i];
+              data[j*rectAOI.s32Width + i] = sum_frame[j*rectAOI.s32Width + i] - dark[j*rectAOI.s32Width + i];
+			  sum_frame[j*rectAOI.s32Width + i] = 0.0;
+		      }
+          }
 
 		/* Save this to the data cube if we need to */
 
@@ -600,7 +604,6 @@ void *do_usb_camera(void *arg)
 		}
 
 		/* Unlock this for the next one */
-
 		is_UnlockSeqBuf(cam_pointer, IS_IGNORE_PARAMETER, 
 			usb_camera_image);
 		
@@ -1636,6 +1639,31 @@ int cmd_setnframe(int argc, char **argv)
 } /* call_set_num_sum_frame() */
 
 /************************************************************************/
+/* cmd_setndemod()		                        				*/
+/*						                            			*/
+/* User callable version.	                					*/
+/************************************************************************/
+
+int cmd_setndemod(int argc, char **argv)
+{
+	char	s[100];
+	int	num;
+
+	if (argc > 1)
+	{
+		sscanf(argv[1],"%d",&num);
+	}
+
+	if (num < 1)
+		return error(ERROR,"Invalid number of frames to sum");
+    /* Set the number of demodulated frames */
+    num_demod_frame=num;
+
+	return NOERROR;
+
+} /* call_set_num_sum_frame() */
+
+/************************************************************************/
 /* cmd_led()						*/
 /*									*/
 /* Tell us that the led is on, off or unknown.						*/
@@ -1722,6 +1750,7 @@ int cmd_image(int argc, char **argv)
     if (use_demod) frame_to_use=demod_frame; 
     else {
         frame_to_use=data_frames[current_data_frame_ix];
+        //frame_to_use=sum_frame;
         current_frame = usb_camera_num_frames;
     }
         

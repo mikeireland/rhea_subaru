@@ -309,6 +309,11 @@ int zaber_init(void)
   zm.type    = ZABER_SET_MODE;
   zm.data    = ZABER_ENABLE_ANTI_BACKLASH | ZABER_ENABLE_ANTI_STICKTION | ZABER_DISABLE_POTENTIOMETER | ZABER_DISABLE_POWER_LED | ZABER_DISABLE_SERIAL_LED;
   zaber_send_command(zm, &answer);
+
+  zm.unit = 0;
+  zm.type = ZABER_SET_ACCELERATION;
+  zm.data = 56; /* about half of default */
+  zaber_send_command(zm,&answer);
 	
   return NOERROR;
 } /* zaber_init */

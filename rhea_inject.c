@@ -1,6 +1,7 @@
 //#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.8.1.3.4.2:1.0-port0"
 //#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:14.0-usb-0:1:1.0-port0"
-#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.8.1.3.4.1:1.0-port0"
+//#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1d.0-usb-0:1.8.1.3.4.1:1.0-port0"
+#define ZABER_SERIAL "/dev/serial/by-path/pci-0000:00:1a.0-usb-0:1.3.4.1:1.0-port0"
 
 #include "zaber.h"
 #include "thor_usb.h"
@@ -30,7 +31,7 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject\tconfigure");
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject\tconfigure\nsetndemod");
 }
 
 /************************************************************************/
@@ -74,12 +75,14 @@ int cmd_configure(int argc, char **argv){
     if (strcmp(argv[1], "rhea")==0){
         if (system("ssh lestat@vampires '/home/lestat/code/script/conex 2 pa 143'"))
             return error(ERROR, "Could not execute command on vampires.");
-        if (system("rhea_pickoff in"))
+        if (execlp("rhea_pickoff", "rhea_pickoff", "in", (char *)NULL))
+        //if (system("/home/scexao/bin/devices/rhea_pickoff in"))
             return error(ERROR, "Could not move RHEA pickoff.");
     } else if (strcmp(argv[1], "vampires")==0){
         if (system("ssh lestat@vampires '/home/lestat/code/script/conex 2 pa 0'"))
             return error(ERROR, "Could not execute command on vampires.");
-        if (system("rhea_pickoff out"))
+        if (execlp("rhea_pickoff", "rhea_pickoff", "out", (char *)NULL))
+        //if (system("/home/scexao/bin/devices/rhea_pickoff out"))
             return error(ERROR, "Could not move RHEA pickoff.");
     } else {
         return error(ERROR, "Useage: configure [rhea|vampires]");
@@ -110,6 +113,7 @@ struct {
 		{"savecube",	cmd_savecube},
 		{"itime",	cmd_itime},
 		{"setnframe",	cmd_setnframe},
+        {"setndemod",	cmd_setndemod},
 		{"image",       cmd_image},
 		{"zreadposfile",	cmd_zreadposfile},
 		{"zwriteposfile",	cmd_zwriteposfile},
