@@ -75,19 +75,19 @@ int cmd_configure(int argc, char **argv){
     if (strcmp(argv[1], "rhea")==0){
         if (system("ssh lestat@vampires '/home/lestat/code/script/conex 2 pa 143'"))
             return error(ERROR, "Could not execute command on vampires.");
-        if (execlp("rhea_pickoff", "rhea_pickoff", "in", (char *)NULL))
+        //if (execlp("rhea_pickoff", "rhea_pickoff", "in", (char *)NULL))
         //if (system("/home/scexao/bin/devices/rhea_pickoff in"))
-            return error(ERROR, "Could not move RHEA pickoff.");
+        //    return error(ERROR, "Could not move RHEA pickoff.");
     } else if (strcmp(argv[1], "vampires")==0){
         if (system("ssh lestat@vampires '/home/lestat/code/script/conex 2 pa 0'"))
             return error(ERROR, "Could not execute command on vampires.");
-        if (execlp("rhea_pickoff", "rhea_pickoff", "out", (char *)NULL))
+        //if (execlp("rhea_pickoff", "rhea_pickoff", "out", (char *)NULL))
         //if (system("/home/scexao/bin/devices/rhea_pickoff out"))
-            return error(ERROR, "Could not move RHEA pickoff.");
+        //    return error(ERROR, "Could not move RHEA pickoff.");
     } else {
         return error(ERROR, "Useage: configure [rhea|vampires]");
     }
-
+    return error(MESSAGE, "move rhea_pickoff manually due to PATH issues.");
 }
 
 /* As we're doing this quickly... skip a header file for now */
