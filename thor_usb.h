@@ -87,6 +87,7 @@ int cmd_startcam(int argc, char **argv);
 int cmd_stopcam(int argc, char **argv);
 int cmd_zdark(int argc, char **argv);
 int cmd_save(int argc, char **argv);
+int cmd_stopcube(int argc, char **argv);
 int cmd_savecube(int argc, char **argv);
 int cnd_dark(int argc, char **argv);
 int cmd_camgain(int argc, char **argv);

@@ -31,7 +31,7 @@ int cmd_exit(int argc, char **argv){
 
 int cmd_help(int argc, char **argv){
 	/* Insert output of "sed '{:q;N;s/\n/\\n/g;t q}' cmds" */
-	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject\tconfigure\nsetndemod");
+	return error(MESSAGE, "exit\thelp\tstartcam\tstopcam\taoi\nfps\tpixelclock\tcamgain\tdestripe\nzdark\tsave\tstopcube\tsavecube\titime\tsetnframe\nzreadposfile\tzwriteposfile\tzgotofixed\nzreset\tzrenumber\tzhome\tzmovrel\tzmovabs\nzsetpos\tzgetpos\tdark\tzzero\nxy\txyf\tzgetfixed\tstatus\nled\tobject\tconfigure\nsetndemod");
 }
 
 /************************************************************************/
@@ -111,6 +111,7 @@ struct {
 		{"zdark",	cmd_zdark},
 		{"save",	cmd_save},
 		{"savecube",	cmd_savecube},
+		{"stopcube",    cmd_stopcube},
 		{"itime",	cmd_itime},
 		{"setnframe",	cmd_setnframe},
         {"setndemod",	cmd_setndemod},
