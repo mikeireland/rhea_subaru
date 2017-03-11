@@ -12,6 +12,7 @@
 #define LONGLONG_TYPE
 #include "uicoms.h"
 #include "thor_usb.h"
+#include "zaber.h" /* So that we can write to the header */
 
 #define LONGLONG_TYPE /* There is a conflict on this fitsio.h ands ueye.h */
 
@@ -583,7 +584,7 @@ void *do_usb_camera(void *arg)
 		    image_data_cube_pointer != NULL)
 		{
 		    if (image_data_cube_count_frames == 0)
-			data_record_start = time(NULL);
+			    data_record_start = time(NULL);
 
 		    for(j = 0; j < rectAOI.s32Height; j++)
 		    for(i = 0; i < rectAOI.s32Width; i++)
@@ -1239,6 +1240,22 @@ int cmd_save(int argc, char **argv)
 } /* save_fits() */
 
 /************************************************************************/
+/* cmd_stopcube()							*/
+/*									*/
+/* Stop saving fits cube.					*/
+/************************************************************************/
+
+int cmd_stopcube(int argc, char **argv)
+{
+    if (argc > 1)
+	{
+		return error(ERROR, "No argument for stopcube");
+	}
+    image_data_cube_num_frames = image_data_cube_count_frames;
+    return NOERROR;
+} /* cmd_stopcube() */
+
+/************************************************************************/
 /* save_fits_cube()							*/
 /*									*/
 /* Save multiple images in a fits file.					*/
@@ -1503,11 +1520,30 @@ void bgnd_complete_fits_cube(void)
                 error(ERROR,"Failed to write LABSTART (%d).", fits_status);
         }
 
-        if(fits_update_key(fptr, TINT, "LABSTOP", &data_record_stop,
+    if(fits_update_key(fptr, TINT, "LABSTOP", &data_record_stop,
                         "Time of last datum (mS)",&fits_status))
         {
                 error(ERROR,"Failed to write LABSTOP (%d).", fits_status);
         }
+
+    /* ZABERX, ZABERY, ZABERF*/
+    if(fits_update_key(fptr, TINT, "ZABERY", z_current_position + IFU_Y,
+                        "Zaber position for IFU Y (0.1 um units)", &fits_status))
+        {
+                error(ERROR,"Failed to write ZABERY (%d).", fits_status);
+        }
+    if(fits_update_key(fptr, TINT, "ZABERX", z_current_position + IFU_X,
+                        "Zaber position for IFU Y (0.1 um units)", &fits_status))
+        {
+                error(ERROR,"Failed to write ZABERX (%d).", fits_status);
+        }
+    if(fits_update_key(fptr, TINT, "ZABERF", z_current_position + FOCUS,
+                        "Zaber position for IFU Y (0.1 um units)", &fits_status))
+        {
+                error(ERROR,"Failed to write ZABERF (%d).", fits_status);
+        }
+    
+    
 
 	/* That should be enough! */
 
@@ -1524,7 +1560,7 @@ void bgnd_complete_fits_cube(void)
 
 	pthread_mutex_lock(&usb_camera_mutex);
 	image_data_cube_num_frames = 0;
-        image_data_cube_count_frames = 0;
+    image_data_cube_count_frames = 0;
 	free(image_data_cube);
 	pthread_mutex_unlock(&usb_camera_mutex);
 

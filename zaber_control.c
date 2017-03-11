@@ -14,9 +14,7 @@
 #include <sys/time.h>
 
 #define ZABER_TIME_OUT	10
-#define IFU_X 2
-#define IFU_Y 1
-char *zaber_names[NUM_ZABER+1] = {"IFU_X", "IFU_Y", "FOCUS",NULL};
+/* IFU_X, IFU_Y and FOCUS defined in zaber.h */
 
 /* Globals declared in zaber.h */
 int z_current_position[NUM_ZABER+1];
@@ -139,8 +137,7 @@ int cmd_zreadposfile(int argc, char* argv[])
 /* zaber_write_position_file                                            */
 /*                                                                      */
 /* This function updates the current z_saved_positions and writes       */
-/* z_saved_positions to file. I tried using system() to rename the file */
-/* but this didn't work...                                              */ 
+/* z_saved_positions to file.                                           */ 
 /************************************************************************/
 int cmd_zwriteposfile(int argc, char* argv[])
 {
@@ -237,6 +234,7 @@ int cmd_zgetfixed(int argc, char * argv[])
 /* cycled. It uses the ZABER_POSITION_FILE to set all motors to         */
 /* position 0.                                                          */
 /************************************************************************/
+
 int cmd_zzero(int argc, char* argv[])
 {
   int i, postot=1, num_failures=0;

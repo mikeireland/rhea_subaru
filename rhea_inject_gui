@@ -41,26 +41,41 @@ class ClientSocket:
             tcpstring = "tcp://"+IP+":"+Port
             print(tcpstring)
             self.client.connect(tcpstring)
-            self.client.RCVTIMEO = 20000
+            self.client.RCVTIMEO = 2000
             self.connected=True
         except: 
             print('ERROR: Could not connect to server. Please check that the server is running and IP is correct.')
             self.connected=False
 
     def send_command(self, command):
-        """WARNING: currently a blocking send/recv!"""
+        """WARNING: Currently an occasional issue where the server just doesn't respond.
+        No idea why..."""
+        if (self.connected==False) and (len(command)==0):
+            try:
+                response = self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
+            except:
+                self.count += 1
+                return "Could not receive buffered response - connection still lost ({0:d} times).".format(self.count)
+            self.connected=True
+            return "Connection re-established!"
+        
+        #Send a command to the client.
         try: 
             self.client.send(command,zmq.NOBLOCK)
+        except:
+            self.connected=False 
+            self.count += 1
+            return 'Error sending command, connection lost ({0:d} times).'.format(self.count)
+        
+        #Receive the response
+        try:
             response = self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
             self.connected=True
             return response
         except:
             self.connected=False 
-#            self.client.close()
             self.count += 1
-            return 'Error sending command, connection lost ({0:d} times)'.format(self.count)
-#        try: return self.client.recv(self.MAX_BUFFER,zmq.NOBLOCK)
-#        except Exception: return 'Error receiving response'
+            return 'Error receiving response, connection lost ({0:d} times)\nPress Enter to reconnect.'.format(self.count)
 
 class RHEAGui(QWidget):
     current_image=0;

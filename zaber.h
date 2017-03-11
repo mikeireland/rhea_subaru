@@ -29,6 +29,10 @@
 
 extern char *zaber_names[NUM_ZABER+1];
 
+#define IFU_X 2
+#define IFU_Y 1
+#define FOCUS 3
+
 #define ZABER_POSITION_FILE "./zaber_positions"
 
 /* The zaber units. */
