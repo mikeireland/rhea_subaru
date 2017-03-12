@@ -277,15 +277,15 @@ int open_usb_camera(void)
 		return error(ERROR, "Failed to set camera gain.");
 	}
 
-	/* Set Hardware Gain to Maximum. */
+	/* Set pixelclock to slow, for long exposures. Max=43. */
 
-	if (set_pixelclock(43))
+	if (set_pixelclock(5))
 	{
 		close_usb_camera();
 		return error(ERROR, "Failed to set camera pixelclock.");
 	}
-
-	/* How many bits per pixel? */
+	
+        /* How many bits per pixel? */
 
 	if ((i = is_SetColorMode(cam_pointer,  IS_CM_SENSOR_RAW8)))
 	{
@@ -313,9 +313,9 @@ int open_usb_camera(void)
 		return error(FATAL, "Error creating TV tracking thread.");
 	}
 
-	/* Set Frames per Sec to 200 */
+	/* Set Frames per Sec to 5 (nice and slow!) */
 
-	if ( (ferr=set_frame_rate(200.0)) < 0.0 )
+	if ( (ferr=set_frame_rate(5.0)) < 0.0 )
 	{
 		close_usb_camera();
 		return error(ERROR,
@@ -589,10 +589,8 @@ void *do_usb_camera(void *arg)
 		    for(j = 0; j < rectAOI.s32Height; j++)
 		    for(i = 0; i < rectAOI.s32Width; i++)
 			*image_data_cube_pointer++ = data[j*rectAOI.s32Width + i];
-
-		    if (++image_data_cube_count_frames == 
-			image_data_cube_num_frames)
-				data_record_stop = time(NULL);
+                    image_data_cube_count_frames++;
+	            data_record_stop = time(NULL);
 		}
 
 		/* Is there a callback function? */
