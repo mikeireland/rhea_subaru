@@ -18,7 +18,7 @@
 
 /* How many frames do we need in the ring buffer? */
 
-#define NUM_IMAGE_MEM 	50
+#define NUM_IMAGE_MEM 	16
 #define USB_DISP_X	320
 #define USB_DISP_Y	256 /* !!! Must be a multiple of 2 */
 #define MAX_FILE_NUMBER	999
