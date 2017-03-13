@@ -31,6 +31,7 @@
 
 struct s_usb_camera usb_camera;
 
+static char relative_data_directory[256];
 static char fits_filename[2000];
 static char tgt_name[80];
 static bool save_fits_file = FALSE;
@@ -42,7 +43,7 @@ static float *off_sum_frame;
 static float *demod_frame;
 static float *this_frame;
 static int led_status=LED_UNKNOWN;
-static int num_sum_frame = 1;
+static int num_sum_frame = 8;
 static int num_demod_frame = 4;
 static int count_demod_frame_on = 0;
 static int count_demod_frame_off = 0;
@@ -84,6 +85,24 @@ static int data_record_start = 0;
 static int data_record_stop = 0;
 
 /************************************************************************/
+/* cmd_dir					*/
+/*									*/
+/* Set the data directory						*/
+/************************************************************************/
+
+int cmd_dir(int argc, char **argv)
+{
+	char	s[100];
+
+	if (argc < 2)
+	    return error(ERROR, "Automatic directory not implemented yet");
+	strcpy(relative_data_directory, argv[1]);
+
+	return NOERROR;
+
+} /* cmd_dir() */
+
+/************************************************************************/
 /* open_usb_camera()							*/
 /*									*/
 /* Tries to open a conenction the USB camera and find out what it can	*/
@@ -107,6 +126,14 @@ int open_usb_camera(void)
 
 	usb_camera.overlay_boxes = TRUE;
 	usb_camera.destripe = TRUE;
+
+    /* As this is the initialization routine, initialise the data directory */
+    		/* Get current GMT */
+
+//		get_ut_date(&year, &month, &day, &doy);
+//%s%4d_%02d_%02d_%s_",
+//			get_data_directory(s), year,month,day,labao_name);
+    sprintf(relative_data_directory, "data");
 
 	/* How many cameras are there out there? */
 
@@ -279,7 +306,7 @@ int open_usb_camera(void)
 
 	/* Set pixelclock to slow, for long exposures. Max=43. */
 
-	if (set_pixelclock(5))
+	if (set_pixelclock(20))
 	{
 		close_usb_camera();
 		return error(ERROR, "Failed to set camera pixelclock.");
@@ -313,9 +340,9 @@ int open_usb_camera(void)
 		return error(FATAL, "Error creating TV tracking thread.");
 	}
 
-	/* Set Frames per Sec to 5 (nice and slow!) */
+	/* Set Frames per Sec to 20 (slow enough, but demodulation still possible) */
 
-	if ( (ferr=set_frame_rate(5.0)) < 0.0 )
+	if ( (ferr=set_frame_rate(20.0)) < 0.0 )
 	{
 		close_usb_camera();
 		return error(ERROR,
@@ -1198,15 +1225,9 @@ int cmd_save(int argc, char **argv)
 	{
 		/* We need to build the filename */
 
-		/* Get current GMT */
-
-//		get_ut_date(&year, &month, &day, &doy);
-
 		/* Now we try and create a new filename */
 
-		sprintf(filename_base,"data/image");
-//"%s%4d_%02d_%02d_%s_",
-//			get_data_directory(s), year,month,day,labao_name);
+		sprintf(filename_base,"%s/image", relative_data_directory);
 
 		for (file_number=1;file_number<=MAX_FILE_NUMBER;file_number++)
 		{
@@ -1351,15 +1372,9 @@ void bgnd_complete_fits_cube(void)
 	}
 	pthread_mutex_unlock(&usb_camera_mutex);
 
-	/* Get current GMT */
+    /* Now we try and create a new filename */
 
-//	get_ut_date(&year, &month, &day, &doy);
-
-	/* Now we try and create a new filename */
-
-	sprintf(filename_base,"data/cube");
-//"%s%4d_%02d_%02d_%s_wfs_",
-//		get_data_directory(s), year,month,day,labao_name);
+	sprintf(filename_base,"%s/cube", relative_data_directory);
 
 	for (file_number=1;file_number<=MAX_FILE_NUMBER;file_number++)
 	{

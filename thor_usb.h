@@ -77,6 +77,7 @@ double usb_camera_set_exptime(double exptime);
 int send_labao_set_usb_camera(bool send_to_all_clients);
 bool usb_cammera_is_running(void);
 int set_num_sum_frame(int num);
+int cmd_dir(int argc, char **argv);
 int cmd_led(int argc, char **argv);
 int cmd_object(int argc, char **argv);
 int cmd_dark(int argc, char **argv);
