@@ -10,11 +10,13 @@ try:
 except:
     #Following doesn't work! Signals are different in PyQt5...
     try:
-        from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit
-        print("PyQt5 support not enabled! Downgrade to PyQt4.")
-        raise UserWarning
+        from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QComboBox
+        from PyQt5.QtCore import pyqtSlot, QTimer
+        from PyQt5.QtGui import QImage, QPixmap
+        #print("PyQt5 support not enabled! Downgrade to PyQt4.")
+        #raise UserWarning
     except:
-        print("Please install PyQt4.")
+        print("Please install PyQt4 or PyQt5.")
         raise UserWarning
 import numpy as np
 import zlib
@@ -93,8 +95,9 @@ class RHEAGui(QWidget):
         #First, the command entry box
         lbl1 = QLabel('Command: ', self)
         self.lineedit = QLineEdit("")
-        self.connect(self.lineedit, SIGNAL("returnPressed()"),
-                        self.send_to_server)
+        self.lineedit.returnPressed.connect(self.send_to_server)
+        #self.connect(self.lineedit, SIGNAL("returnPressed()"),
+        #                self.send_to_server)
         hbox1 = QHBoxLayout()
         hbox1.addWidget(lbl1)
         hbox1.addWidget(self.lineedit)
@@ -112,7 +115,8 @@ class RHEAGui(QWidget):
         lbl2 = QLabel('AOI: ', self)
         self.aoi_edit = QLineEdit("400 452 320 256")
         self.aoi_edit.setMaxLength(15)
-        self.connect(self.aoi_edit, SIGNAL("returnPressed()"),self.send_aoi)
+        self.aoi_edit.returnPressed.connect(self.send_aoi)
+        #self.connect(self.aoi_edit, SIGNAL("returnPressed()"),
         #self.connect(self.aoi_y, SIGNAL("returnPressed()"),self.send_aoi)
         #self.connect(self.aoi_w, SIGNAL("returnPressed()"),self.send_aoi)
         #self.connect(self.aoi_h, SIGNAL("returnPressed()"),self.send_aoi)
